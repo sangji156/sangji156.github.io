@@ -246,7 +246,7 @@ footer b{color:#fff}
 .share .btns{display:grid;gap:10px;max-width:420px;margin:0 auto}
 .btn.kakao{background:#fee500;color:#191919;display:flex;align-items:center;justify-content:center;gap:10px;font-size:19px;padding:18px 22px;box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .btn.kakao svg{width:28px;height:28px;flex:none}
-.share .toast{color:#fee500}
+.share .toast{color:#fee500;font-size:17px;line-height:1.6}
 
 /* stock */
 .tile .rib{position:absolute;top:10px;left:10px;font-size:12px;font-weight:900;padding:4px 10px;border-radius:999px;background:#ffe1e1;color:#c8102e}
@@ -748,10 +748,19 @@ document.getElementById('tyCopy').addEventListener('click', () => copyTo('302-08
 document.getElementById('copy').addEventListener('click', async () => { const t = document.getElementById('toast'), no = '302-0817-7997-71';
   try { await navigator.clipboard.writeText(no); t.textContent = L === 'en' ? 'Copied! Paste it in your bank app.' : '복사했습니다. 은행 앱에 붙여 넣으세요.'; }
   catch (err) { t.textContent = L === 'en' ? 'Press and hold the number to copy.' : '복사가 안 되면 번호를 길게 눌러 복사해 주세요.'; } });
+const copyAny = async txt => { try { await navigator.clipboard.writeText(txt); return true; } catch (e) {}
+  try { const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 99999); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } };
 document.getElementById('shareMsg').addEventListener('click', async () => {
-  const url = LAND + '?from=friend', full = shareText(), text = full.replace(url, '').replace(/\n{3,}/g, '\n\n').trim();
-  if (navigator.share) { try { await navigator.share({ title: L === 'en' ? 'Daldal Apple Farm' : '달달한 사과농장', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-  copyTo(full, L === 'en' ? 'Copied! Paste it into KakaoTalk.' : '복사했어요! 카톡 대화방에 붙여 넣으세요.', 'shareToast'); });
+  const url = LAND + '?from=friend', full = shareText(), t = document.getElementById('shareToast'), en = L === 'en';
+  const ua = navigator.userAgent, inApp = /KAKAOTALK|NAVER|BAND|Instagram|FBAN|FBAV|Line\//i.test(ua), mobile = /Android|iPhone|iPad|iPod/i.test(ua);
+  if (mobile && !inApp && navigator.share) {
+    try { await navigator.share({ title: en ? 'Daldal Apple Farm' : '달달한 사과농장', text: full.replace(url, '').replace(/\n{3,}/g, '\n\n').trim(), url }); t.textContent = en ? 'Thank you for sharing!' : '공유해 주셔서 감사합니다!'; return; }
+    catch (e) { if (e && e.name === 'AbortError') return; } }
+  const ok = await copyAny(full);
+  t.innerHTML = ok
+    ? (en ? 'Copied! Open a KakaoTalk chat and paste it.' : '✔ 소개 글이 복사됐어요!<br>카톡 대화방을 열고 <b>붙여넣기</b> 하세요.' + (mobile ? '' : '<br>(PC는 Ctrl+V)'))
+    : (en ? 'Please copy this text:' : '아래 글을 길게 눌러 복사해 주세요.') + '<br><span style="user-select:all;white-space:pre-line">' + esc(full) + '</span>';
+});
 setLang(L);
 loadSheet().then(() => { drawNews(); if (location.hash === '#thanks') { try { showThanks(JSON.parse(localStorage.getItem('lastOrder') || 'null') || { items: [L === 'en' ? 'Your order' : '주문서에 적어 주신 상품'], total: '', pre: false }); } catch (e) {} } Object.keys(qty).forEach(k => { const p = PRODUCTS.find(x => x.id === k); if (!p) delete qty[k]; else qty[k] = Math.min(qty[k], maxOf(p)); }); draw(); sum(); drawNotices(); });
 }
