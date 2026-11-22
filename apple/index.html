@@ -306,6 +306,7 @@ footer b{color:#fff}
 .nw img,.nw iframe{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;border:0;background:#000}
 .nw .tx{padding:14px 16px 18px}.nw .dt{font-size:13px;color:var(--mute)}.nw b{display:block;font-size:18px;margin:2px 0 4px}.nw p{margin:0;color:var(--mute);font-size:15px}
 </style>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js" integrity="sha384-WAtVcQYcmTO/N+C1N+1m6Gp8qxh+3NlnP7X1U7qP6P5dQY/MsRBNTh+e1ahJrkEm" crossorigin="anonymous" defer></script>
 </head>
 <body>
 
@@ -502,7 +503,7 @@ footer b{color:#fff}
 
 <section class="band share" id="share"><div class="wrap">
   <h2 data-en="Share with friends">맛있게 드셨다면, 소개해 주세요</h2>
-  <p data-en="Tap the button and pick KakaoTalk, Band or Messages.">버튼을 누르고 카톡을 고르면<br class="m"> 지인에게 바로 보내져요.</p>
+  <p data-en="Tap the button and pick KakaoTalk, Band or Messages.">버튼을 누르고 대화방을 고르면<br class="m"> 지인에게 바로 보내져요.</p>
   <div class="btns">
     <button class="btn kakao" type="button" id="shareMsg"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3a1d1d" d="M16 4C8.8 4 3 8.6 3 14.3c0 3.7 2.4 6.9 6.1 8.7l-1.3 4.7c-.1.4.4.8.8.5l5.5-3.7c.6.1 1.3.1 1.9.1 7.2 0 13-4.6 13-10.3S23.2 4 16 4z"/></svg><span data-en="Share with friends">지인에게 공유하기</span></button>
   </div>
@@ -750,7 +751,19 @@ document.getElementById('copy').addEventListener('click', async () => { const t 
   catch (err) { t.textContent = L === 'en' ? 'Press and hold the number to copy.' : '복사가 안 되면 번호를 길게 눌러 복사해 주세요.'; } });
 const copyAny = async txt => { try { await navigator.clipboard.writeText(txt); return true; } catch (e) {}
   try { const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, 99999); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; } };
+const KAKAO_JS_KEY = 'ebac699cf9b09aa54abf07c0d0e89837'; // 공개용 JavaScript 키 (sangji156.github.io 에서만 작동)
+const kakaoShare = () => { try {
+  if (!window.Kakao) return false; if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+  const url = LAND + '?from=friend', en = L === 'en';
+  Kakao.Share.sendDefault({ objectType: 'feed',
+    content: { title: en ? '🍎 Daldal Apple Farm (Hoengseong, Korea)' : '🍎 강원 횡성 달달한 사과농장',
+      description: en ? 'Crisp, sweet Fuji apples · 5kg from ₩40,000 · free shipping' : '착색제 없이 키운 햇부사 · 5kg 40,000원부터 · 배송비 무료',
+      imageUrl: LAND + 'img/og.jpg', imageWidth: 1200, imageHeight: 630,
+      link: { mobileWebUrl: url, webUrl: url } },
+    buttons: [{ title: en ? 'Order apples' : '사과 주문하러 가기', link: { mobileWebUrl: url, webUrl: url } }] });
+  return true; } catch (e) { return false; } };
 document.getElementById('shareMsg').addEventListener('click', async () => {
+  if (kakaoShare()) { document.getElementById('shareToast').textContent = L === 'en' ? 'Pick a KakaoTalk chat to send.' : '카톡에서 보낼 대화방을 골라 주세요.'; return; }
   const url = LAND + '?from=friend', full = shareText(), t = document.getElementById('shareToast'), en = L === 'en';
   const ua = navigator.userAgent, inApp = /KAKAOTALK|NAVER|BAND|Instagram|FBAN|FBAV|Line\//i.test(ua), mobile = /Android|iPhone|iPad|iPod/i.test(ua);
   if (mobile && !inApp && navigator.share) {
