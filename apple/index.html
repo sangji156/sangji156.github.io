@@ -282,6 +282,15 @@ footer b{color:#fff}
 .paybub{position:relative;background:var(--card);border:2px solid var(--red);border-radius:24px;padding:18px 26px;box-shadow:0 10px 26px rgba(110,10,24,.1)}
 .paybub::before{content:"";position:absolute;left:-13px;top:50%;width:22px;height:22px;background:var(--card);border-left:2px solid var(--red);border-bottom:2px solid var(--red);transform:translateY(-50%) rotate(45deg)}
 .paybub h2{margin:0;text-align:center;line-height:1.35;font-size:clamp(24px,6vw,34px)}
+.paybtns{max-width:460px;margin:22px auto 0;text-align:center}
+.paylead{font-weight:800;font-size:18px;margin:0 0 12px}
+.payrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.paybtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:14px 10px;font-size:16px;border-radius:16px}
+.paybtn b{font-size:20px;font-weight:900;letter-spacing:-.02em}
+.paybtn.toss{background:#0064ff;color:#fff}
+.paybtn.kpay{background:#ffeb00;color:#191919}
+.paynote{margin:12px 0 0;font-size:15px;line-height:1.6;color:var(--ink)}
+.paynote b{color:var(--red)}
 @media(max-width:600px){.paytalk{flex-direction:column;gap:14px}.paytalk img{width:104px}.paybub::before{left:50%;top:-13px;transform:translateX(-50%) rotate(135deg)}}
 @media(max-width:600px){.talk{grid-template-columns:1fr;justify-items:center}.talk img{width:150px}.bubble::before{left:50%;top:-14px;transform:translateX(-50%) rotate(135deg)}}
 
@@ -481,6 +490,15 @@ footer b{color:#fff}
       </div>
     </div>
     <div class="toast" id="toast" aria-live="polite"></div>
+    <div class="paybtns">
+      <p class="paylead" data-en="Or send with an app">앱으로 간편하게 보내기</p>
+      <div class="payrow">
+        <button class="btn paybtn toss" type="button" id="payToss"><b>toss</b><span data-en="Send with Toss">토스로 보내기</span></button>
+        <button class="btn paybtn kpay" type="button" id="payKakao"><b>pay</b><span data-en="Send with KakaoPay">카카오페이로 보내기</span></button>
+      </div>
+      <p class="paynote" data-en="Check that the recipient is <b>김병춘 (Kim Byeong-chun)</b> before sending.">보내기 전에 받는 분이<br class="m"> <b>김병춘</b>인지 꼭 확인해 주세요.</p>
+      <div class="toast" id="payToast" aria-live="polite"></div>
+    </div>
   </div>
   <div class="warn" role="note">
     <svg><use href="#i-shield"/></svg>
@@ -762,6 +780,23 @@ const kakaoShare = () => { try {
       link: { mobileWebUrl: url, webUrl: url } },
     buttons: [{ title: en ? 'Order apples' : '사과 주문하러 가기', link: { mobileWebUrl: url, webUrl: url } }] });
   return true; } catch (e) { return false; } };
+/* 간편송금: 계좌는 코드에 고정 (시트로 변경 불가) */
+const PAY = { bank: '농협', bankCode: '011', no: '3020817799771', show: '302-0817-7997-71' };
+const payAmt = () => { try { const o = LAST || JSON.parse(localStorage.getItem('lastOrder') || 'null'); const n = o && String(o.total).replace(/[^0-9]/g, ''); return n ? +n : 0; } catch (e) { return 0; } };
+const openPay = async (app) => {
+  const t = document.getElementById('payToast'), en = L === 'en', mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  await copyAny(PAY.bank + ' ' + PAY.show);
+  if (!mobile) { t.innerHTML = en ? 'Account no. copied. Please use your phone for app transfer.' : '계좌번호를 복사했어요.<br>앱 송금은 <b>휴대폰</b>에서 눌러 주세요.'; return; }
+  const amt = payAmt();
+  const url = app === 'toss'
+    ? 'supertoss://send?bank=' + encodeURIComponent(PAY.bank) + '&accountNo=' + PAY.no + (amt ? '&amount=' + amt : '')
+    : 'kakaotalk://kakaopay/money/to/bank?bank_code=' + PAY.bankCode + '&bank_account_number=' + PAY.no + (amt ? '&amount=' + amt : '');
+  t.innerHTML = en ? 'Opening the app… If the account is not filled in, paste it (already copied).' : '앱을 여는 중이에요.<br>계좌가 안 채워져 있으면 <b>붙여넣기</b> 하세요 (이미 복사됐어요).';
+  const t0 = Date.now(); location.href = url;
+  setTimeout(() => { if (!document.hidden && Date.now() - t0 < 2500) t.innerHTML = en ? 'App not found. Account no. is copied — paste it in your bank app.' : '앱이 열리지 않았어요.<br>계좌번호가 복사돼 있으니 은행 앱에 <b>붙여넣기</b> 하세요.'; }, 1800);
+};
+document.getElementById('payToss').addEventListener('click', () => openPay('toss'));
+document.getElementById('payKakao').addEventListener('click', () => openPay('kakao'));
 document.getElementById('shareMsg').addEventListener('click', async () => {
   if (kakaoShare()) { document.getElementById('shareToast').textContent = L === 'en' ? 'Pick a KakaoTalk chat to send.' : '카톡에서 보낼 대화방을 골라 주세요.'; return; }
   const url = LAND + '?from=friend', full = shareText(), t = document.getElementById('shareToast'), en = L === 'en';
