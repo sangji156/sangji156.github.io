@@ -244,8 +244,8 @@ footer b{color:#fff}
 .share h2{color:#fff}
 .share p{color:#ffdede;margin:0 0 22px}
 .share .btns{display:grid;gap:10px;max-width:420px;margin:0 auto}
-.btn.kakao{background:#fee500;color:#191919}
-.btn.outline-w{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7)}
+.btn.kakao{background:#fee500;color:#191919;display:flex;align-items:center;justify-content:center;gap:10px;font-size:19px;padding:18px 22px;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.btn.kakao svg{width:28px;height:28px;flex:none}
 .share .toast{color:#fee500}
 
 /* stock */
@@ -495,10 +495,9 @@ footer b{color:#fff}
 
 <section class="band share" id="share"><div class="wrap">
   <h2 data-en="Share with friends">맛있게 드셨다면, 소개해 주세요</h2>
-  <p data-en="Copy the message and paste it into KakaoTalk, Band or a text.">아래 버튼으로 글을 복사해서<br class="m"> 카톡·밴드·문자에 붙여 넣으세요.</p>
+  <p data-en="Tap the button and pick KakaoTalk, Band or Messages.">버튼을 누르고 카톡을 고르면<br class="m"> 지인에게 바로 보내져요.</p>
   <div class="btns">
-    <button class="btn kakao" type="button" id="shareMsg" data-en="Copy message for KakaoTalk">카톡에 보낼 글 복사하기</button>
-    <button class="btn outline-w" type="button" id="shareLink" data-en="Copy link only">링크만 복사하기</button>
+    <button class="btn kakao" type="button" id="shareMsg"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#3a1d1d" d="M16 4C8.8 4 3 8.6 3 14.3c0 3.7 2.4 6.9 6.1 8.7l-1.3 4.7c-.1.4.4.8.8.5l5.5-3.7c.6.1 1.3.1 1.9.1 7.2 0 13-4.6 13-10.3S23.2 4 16 4z"/></svg><span data-en="Share with friends">지인에게 공유하기</span></button>
   </div>
   <div class="toast" id="shareToast" aria-live="polite"></div>
 </div></section>
@@ -742,8 +741,10 @@ document.getElementById('tyCopy').addEventListener('click', () => copyTo('302-08
 document.getElementById('copy').addEventListener('click', async () => { const t = document.getElementById('toast'), no = '302-0817-7997-71';
   try { await navigator.clipboard.writeText(no); t.textContent = L === 'en' ? 'Copied! Paste it in your bank app.' : '복사했습니다. 은행 앱에 붙여 넣으세요.'; }
   catch (err) { t.textContent = L === 'en' ? 'Press and hold the number to copy.' : '복사가 안 되면 번호를 길게 눌러 복사해 주세요.'; } });
-document.getElementById('shareMsg').addEventListener('click', () => copyTo(shareText(), L === 'en' ? 'Copied! Paste it into KakaoTalk.' : '복사했어요! 카톡 대화방에 붙여 넣으세요.', 'shareToast'));
-document.getElementById('shareLink').addEventListener('click', () => copyTo(LAND + '?from=friend', L === 'en' ? 'Link copied!' : '링크를 복사했어요!', 'shareToast'));
+document.getElementById('shareMsg').addEventListener('click', async () => {
+  const url = LAND + '?from=friend', full = shareText(), text = full.replace(url, '').trim();
+  if (navigator.share) { try { await navigator.share({ title: L === 'en' ? 'Daldal Apple Farm' : '달달한 사과농장', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  copyTo(full, L === 'en' ? 'Copied! Paste it into KakaoTalk.' : '복사했어요! 카톡 대화방에 붙여 넣으세요.', 'shareToast'); });
 setLang(L);
 loadSheet().then(() => { drawNews(); if (location.hash === '#thanks') { try { showThanks(JSON.parse(localStorage.getItem('lastOrder') || 'null') || { items: [L === 'en' ? 'Your order' : '주문서에 적어 주신 상품'], total: '', pre: false }); } catch (e) {} } Object.keys(qty).forEach(k => { const p = PRODUCTS.find(x => x.id === k); if (!p) delete qty[k]; else qty[k] = Math.min(qty[k], maxOf(p)); }); draw(); sum(); drawNotices(); });
 }
