@@ -715,8 +715,8 @@ const drawReviews = () => { const el = document.getElementById('rvList');
   el.innerHTML = REVIEWS.length ? '<div class="rv-grid">' + REVIEWS.map(r => `<div class="box rv"><div class="stars">${'★'.repeat(r.s)}${'☆'.repeat(5 - r.s)}</div><p>${esc(r.t)}</p><div class="who">${esc(r.n)}</div></div>`).join('') + '</div>'
     : `<div class="rv-empty"><b>${L === 'en' ? 'Be the first to review!' : '첫 후기를 기다리고 있어요'}</b>${L === 'en' ? 'Tell us how you liked our apples.' : '드셔 보시고 한 줄만 남겨 주세요.<br>큰 힘이 돼요!'}</div>`; };
 const shareText = () => L === 'en'
-  ? `🍎 Daldal Apple Farm (Hoengseong, Korea)\nSweet, crisp Fuji apples with no coloring agents.\n5kg from ₩40,000 · free shipping\nOrder here 👇\n${LAND}?from=friend`
-  : `🍎 강원 횡성 달달한 사과농장\n착색제 없이 키운 아삭하고 달콤한 햇부사예요.\n5kg 40,000원부터 · 사과 배송비 무료\n가격 보고 주문하기 👇\n${LAND}?from=friend`;
+  ? `🍎 Daldal Apple Farm (Hoengseong, Korea)\nSweet, crisp Fuji apples with no coloring agents.\n5kg from ₩40,000 · free shipping\nOrder here 👇\n${LAND}?from=friend\n\n⚠️ Official site: sangji156.github.io/apple only. Never pay to any other account.`
+  : `🍎 강원 횡성 달달한 사과농장\n착색제 없이 키운 아삭하고 달콤한 햇부사예요.\n5kg 40,000원부터 · 사과 배송비 무료\n가격 보고 주문하기 👇\n${LAND}?from=friend\n\n⚠️ 공식 주소는 sangji156.github.io/apple 하나뿐이에요.\n다른 주소·다른 계좌로 안내받으면 입금하지 마세요.`;
 const copyTo = async (txt, ok, id) => { const t = document.getElementById(id);
   try { await navigator.clipboard.writeText(txt); t.textContent = ok; } catch (e) { t.textContent = (L === 'en' ? 'Press and hold to copy: ' : '길게 눌러 복사해 주세요: ') + txt; } };
 
@@ -742,7 +742,7 @@ document.getElementById('copy').addEventListener('click', async () => { const t 
   try { await navigator.clipboard.writeText(no); t.textContent = L === 'en' ? 'Copied! Paste it in your bank app.' : '복사했습니다. 은행 앱에 붙여 넣으세요.'; }
   catch (err) { t.textContent = L === 'en' ? 'Press and hold the number to copy.' : '복사가 안 되면 번호를 길게 눌러 복사해 주세요.'; } });
 document.getElementById('shareMsg').addEventListener('click', async () => {
-  const url = LAND + '?from=friend', full = shareText(), text = full.replace(url, '').trim();
+  const url = LAND + '?from=friend', full = shareText(), text = full.replace(url, '').replace(/\n{3,}/g, '\n\n').trim();
   if (navigator.share) { try { await navigator.share({ title: L === 'en' ? 'Daldal Apple Farm' : '달달한 사과농장', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
   copyTo(full, L === 'en' ? 'Copied! Paste it into KakaoTalk.' : '복사했어요! 카톡 대화방에 붙여 넣으세요.', 'shareToast'); });
 setLang(L);
